@@ -1,7 +1,7 @@
 #include <iostream>
-#include <map>
 #include <iterator>
 #include <tuple>
+#include <map>
 #include "debug_log.h"
 
 template<typename T, T default_value, size_t dim = 2>
@@ -15,7 +15,7 @@ struct Matrix
 
         IdxStorage(data_type& ext_data_, size_t index) : ext_data(ext_data_), cur_idx(0)
         {
-            key[0] = index;
+            key[cur_idx++] = index;
         }
 
 
@@ -23,9 +23,9 @@ struct Matrix
         {
             D_PF_LOG();
 
-            if(cur_idx >= (dim - 1))
+            if(cur_idx >= dim)
                 throw std::invalid_argument("Invalid matrix index");
-            key[++cur_idx] = idx;
+            key[cur_idx++] = idx;
         }
 
 
@@ -38,18 +38,13 @@ struct Matrix
         }
 
 
-        const IdxStorage & operator[] (size_t idx) const
-        {
-            D_PF_LOG();
-
-            add_idx(idx);
-            return (*this);
-        }
-
-
-        T& operator=(const T value)
+        //T& operator=(const T value)
+        T operator=(const T value)
         {   
             D_PF_LOG();
+
+            if(cur_idx != dim)
+                throw std::invalid_argument("Invalid matrix index");
 
             if(value == cur_def){
                 ext_data.erase(key);
@@ -61,9 +56,11 @@ struct Matrix
         }
 
 
-        operator T()
+        operator const T& ()
         {   
             D_PF_LOG();
+            if(cur_idx != dim)
+                throw std::invalid_argument("Invalid matrix index");
 
             auto it = ext_data.find( key );
             if ( it == ext_data.end())
@@ -89,19 +86,13 @@ struct Matrix
     }
 
 
-    const IdxStorage operator[] (size_t idx) const
-    {
-        return IdxStorage(data, idx);
-    }
-
-
     size_t size() const
     {       
         return data.size();;
     }
 
 
-    struct const_iterator : std::iterator<std::forward_iterator_tag, const T >
+    struct const_iterator : std::iterator<std::forward_iterator_tag, const T>
     {
 
         const_iterator(typename data_type::const_iterator it_) : it(it_){}

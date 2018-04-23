@@ -28,30 +28,42 @@ BOOST_AUTO_TEST_SUITE(test_suite_matrix)
 
 BOOST_AUTO_TEST_CASE(base_check)
 {
-    Matrix<int, -1, 2> matrix; 
+    Matrix<int, -1, 2> matrix_2D; 
 
-    BOOST_CHECK(matrix.size() == 0);
+    BOOST_CHECK(matrix_2D.size() == 0);
 
-    auto a = matrix[0][0];
+    auto a = matrix_2D[0][0];
     BOOST_CHECK(a == -1);
-    BOOST_CHECK(matrix.size() == 0);
+    BOOST_CHECK(matrix_2D.size() == 0);
 
-    matrix[100][100] = 314;
-    BOOST_CHECK(matrix[100][100] == 314);
-    BOOST_CHECK(matrix.size() == 1);
+    matrix_2D[100][100] = 314;
+    BOOST_CHECK(matrix_2D[100][100] == 314);
+    BOOST_CHECK(matrix_2D.size() == 1);
 }
+
 
 BOOST_AUTO_TEST_CASE(check_dim)
 {
-    Matrix<int, -1, 2> matrix_2D; 
+    Matrix<int, -1, 2> matrix_2D;
 
     BOOST_CHECK_NO_THROW(matrix_2D[0][0]);
-    BOOST_CHECK_THROW   (matrix_2D[0][0][0], std::invalid_argument);
+    BOOST_CHECK_NO_THROW(matrix_2D[0][0] = 8);
+    BOOST_CHECK_NO_THROW(matrix_2D[0]);
+
+    BOOST_CHECK_THROW   (matrix_2D[0][0][0],        std::invalid_argument);
+    BOOST_CHECK_THROW   (matrix_2D[0] = 8,          std::invalid_argument);
+    BOOST_CHECK_THROW   (std::cout << matrix_2D[0], std::invalid_argument);
+
 
     Matrix<int, -1, 3> matrix_3D; 
 
     BOOST_CHECK_NO_THROW(matrix_3D[0][0][0]);
-    BOOST_CHECK_THROW   (matrix_3D[0][0][0][0], std::invalid_argument);
+    BOOST_CHECK_NO_THROW(matrix_3D[0][0][0] = 8);
+    BOOST_CHECK_NO_THROW(matrix_3D[0][0]);
+
+    BOOST_CHECK_THROW   (matrix_3D[0][0][0][0],        std::invalid_argument);
+    BOOST_CHECK_THROW   (matrix_3D[0][0] = 8,          std::invalid_argument);
+    BOOST_CHECK_THROW   (std::cout << matrix_3D[0][0], std::invalid_argument);
 }
 
 
@@ -92,6 +104,7 @@ BOOST_AUTO_TEST_CASE(test_run_main)
     BOOST_CHECK( oss.str() == out_data );
 }
 
+
 BOOST_AUTO_TEST_CASE(print_3D)
 {
     std::stringstream oss;
@@ -111,6 +124,7 @@ BOOST_AUTO_TEST_CASE(print_3D)
 
     BOOST_CHECK( oss.str() == out_data );
 }
+
 
 BOOST_AUTO_TEST_CASE(matrix_size_def_val)
 {
@@ -137,7 +151,5 @@ BOOST_AUTO_TEST_CASE(matrix_size_def_val)
     matrix_3D[15][15][246] = -1;
     BOOST_CHECK( matrix_3D.size() == 0 );
 }
-
-
 
 BOOST_AUTO_TEST_SUITE_END()

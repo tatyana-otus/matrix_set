@@ -17,15 +17,11 @@ void print_non_empty (const Matrix<T, default_value, dim>& m, std::ostream& os =
 
 
 template<typename T, T default_value>
-static void print_square(Matrix<T, default_value>& m, size_t row_up,  size_t col_left, 
-                                               size_t row_down, size_t col_right, 
-                                               std::ostream& os = std::cout)
+static void print_square( Matrix<T, default_value>& m, size_t row_up, size_t col_left, 
+                         size_t size, std::ostream& os = std::cout)
 {
-    if((row_up > row_down) || (col_left > col_right))
-        throw std::invalid_argument("Invalid index");
-
-    for(auto i = row_up; i <= row_down; ++i){
-        for(auto j = col_left; j <= col_right; ++j){
+    for(auto i = row_up; i <= size; ++i){
+        for(auto j = col_left; j <= size; ++j){
             os << m[i][j] << " ";
         } 
         os << "\n";   
@@ -35,7 +31,6 @@ static void print_square(Matrix<T, default_value>& m, size_t row_up,  size_t col
 
 void run_main(std::ostream& os = std::cout)
 {
-
     using Matrix_2D =  Matrix<int, 0>;
 
     Matrix_2D matrix;
@@ -45,7 +40,7 @@ void run_main(std::ostream& os = std::cout)
         matrix[9 - i][i] = i;
     }     
 
-    print_square(matrix, 1, 1, 8, 8, os);
+    print_square(matrix, 1, 1, 8, os);
 
     print_non_empty(matrix, os);
 

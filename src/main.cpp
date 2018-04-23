@@ -1,14 +1,13 @@
 //#define DEBUG_INFO_ALL
 
 #include "function.h"
-#include <assert.h>
 
 
 int main(int, char**)
 {
     try
     {
-      run_main(std::cout);  
+        run_main(std::cout);  
     }
     catch(const std::exception &e)
     {
