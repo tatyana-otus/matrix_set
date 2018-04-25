@@ -155,4 +155,14 @@ BOOST_AUTO_TEST_CASE(matrix_size_def_val)
     BOOST_CHECK( matrix_3D.size() == 0 );
 }
 
+BOOST_AUTO_TEST_CASE(const_matrix)
+{
+    const Matrix<int, -1, 2> matrix_2D; 
+
+    auto a = matrix_2D[0][0];
+    BOOST_CHECK(a == -1);
+
+    BOOST_CHECK(matrix_2D[0][0] == -1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

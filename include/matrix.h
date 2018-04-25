@@ -11,31 +11,24 @@ struct Matrix
 
     using data_type = std::list<typename tuple_of_n<size_t, T,  dim>::type>;   
 
-    T  cur_def = default_value;
-    data_type data;
-
-
-    template<size_t i>
+    template<size_t i, class data_type>
     struct idexer{
 
         T  cur_def = default_value;
 
         using idex_type = typename tuple_of_n<size_t, size_t, i>::type;
 
-        idex_type   index;
-        data_type&  ext_data; 
-
-
         idexer(idex_type val_, data_type& ext_data_):index(val_),ext_data(ext_data_) {}
 
 
-        auto operator[](size_t idx_val) 
+        idexer<i+1, data_type> operator[](size_t idx_val) 
         {
+            D_PF_LOG();
             static_assert (i < dim , "Invalid matrix index");
-
-            D_PF_LOG();           
-            return idexer<i+1>(std::tuple_cat(index, std::make_tuple(idx_val)), ext_data);
+           
+            return { std::tuple_cat(index, std::make_tuple(idx_val)), ext_data };
         }
+       
 
          //T& operator=(const T value)
         T operator=(const T value)
@@ -47,22 +40,21 @@ struct Matrix
             auto it = is_idx_exist();
 
             if ( it == ext_data.end() ) {
-                if(value != cur_def){ //new data
+                if(value != cur_def){ 
                     ext_data.push_back(std::tuple_cat(index, std::make_tuple(value)));                    
                 }    
             }
             else{
-                if(value != cur_def){ //new data
-                    ext_data.erase(it);
-                    ext_data.push_back(std::tuple_cat(index, std::make_tuple(value)));                    
+                if(value != cur_def){
+                    std::get<dim>((*it)) = value;                   
                 } 
                 else {
                     ext_data.erase(it);    
                 }
-
             }
             return value;
         }
+
 
         operator const T& () const
         {   
@@ -79,27 +71,31 @@ struct Matrix
             }
         }
 
+    private:
+
+        idex_type   index;
+        data_type&  ext_data; 
+
         auto is_idx_exist() const
         {
-            auto it = std::find_if(ext_data.cbegin(), ext_data.cend(), [this](auto d){
+            auto it = std::find_if(ext_data.begin(), ext_data.end(), [this](auto d){
                                    return partial_tuple_cmp<dim>(this->index, d);});
-
             return it;
         }
     }; 
     
 
-     auto operator[](size_t idx_val) 
+    idexer<0, data_type> operator[](size_t idx_val) 
     {
         D_PF_LOG();
-        return idexer<0>(std::make_tuple(idx_val), data);
+        return { std::make_tuple(idx_val), data };
     }
 
 
-    auto operator[](size_t idx_val) const
+    idexer<0, const data_type> operator[](size_t idx_val) const
     {
         D_PF_LOG();
-        return idexer<0>(std::make_tuple(idx_val), data);
+        return { std::make_tuple(idx_val), data };
     }
 
 
@@ -113,6 +109,7 @@ struct Matrix
     {
         data.sort();
     }
+
 
     auto begin() const { return data.cbegin(); }
     auto end()   const { return data.cend();   }
@@ -142,4 +139,8 @@ struct Matrix
             os << "\n";   
         }
     }
+
+private:
+    T  cur_def = default_value;
+    data_type data;   
 };
