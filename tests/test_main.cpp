@@ -50,9 +50,10 @@ BOOST_AUTO_TEST_CASE(check_dim)
     BOOST_CHECK_NO_THROW(matrix_2D[0][0] = 8);
     BOOST_CHECK_NO_THROW(matrix_2D[0]);
 
-    BOOST_CHECK_THROW   (matrix_2D[0][0][0],        std::invalid_argument);
-    BOOST_CHECK_THROW   (matrix_2D[0] = 8,          std::invalid_argument);
-    BOOST_CHECK_THROW   (std::cout << matrix_2D[0], std::invalid_argument);
+    //error at compile time
+    //BOOST_CHECK_THROW   (matrix_2D[0][0][0],        std::invalid_argument);
+    //BOOST_CHECK_THROW   (matrix_2D[0] = 8,          std::invalid_argument);
+    //BOOST_CHECK_THROW   (std::cout << matrix_2D[0], std::invalid_argument);
 
 
     Matrix<int, -1, 3> matrix_3D; 
@@ -61,9 +62,10 @@ BOOST_AUTO_TEST_CASE(check_dim)
     BOOST_CHECK_NO_THROW(matrix_3D[0][0][0] = 8);
     BOOST_CHECK_NO_THROW(matrix_3D[0][0]);
 
-    BOOST_CHECK_THROW   (matrix_3D[0][0][0][0],        std::invalid_argument);
-    BOOST_CHECK_THROW   (matrix_3D[0][0] = 8,          std::invalid_argument);
-    BOOST_CHECK_THROW   (std::cout << matrix_3D[0][0], std::invalid_argument);
+    //error at compile time
+    //BOOST_CHECK_THROW   (matrix_3D[0][0][0][0],        std::invalid_argument);
+    //BOOST_CHECK_THROW   (matrix_3D[0][0] = 8,          std::invalid_argument);
+    //BOOST_CHECK_THROW   (std::cout << matrix_3D[0][0], std::invalid_argument);
 }
 
 
@@ -99,7 +101,7 @@ BOOST_AUTO_TEST_CASE(test_run_main)
     "9 9 9\n"
     "18\n";
 
-    run_main(oss);
+    endless_sparse2Dmatrix(oss); // output in sorted order
 
     BOOST_CHECK( oss.str() == out_data );
 }
@@ -120,7 +122,7 @@ BOOST_AUTO_TEST_CASE(print_3D)
     for(auto i = 0; i < 5; i++)
         matrix_3D[i][i][i] = i;
 
-    print_non_empty(matrix_3D, oss);
+    matrix_3D.print_non_empty(oss);
 
     BOOST_CHECK( oss.str() == out_data );
 }
@@ -148,6 +150,7 @@ BOOST_AUTO_TEST_CASE(matrix_size_def_val)
     BOOST_CHECK( matrix_3D[15][15][246] == -8 );
 
     matrix_3D[15][15][245] = -1;
+    BOOST_CHECK( matrix_3D.size() == 1 );
     matrix_3D[15][15][246] = -1;
     BOOST_CHECK( matrix_3D.size() == 0 );
 }

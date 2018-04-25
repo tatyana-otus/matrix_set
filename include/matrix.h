@@ -1,88 +1,105 @@
-#include <iostream>
 #include <iterator>
-#include <tuple>
-#include <map>
+#include <algorithm>
+#include <list>
 #include "debug_log.h"
+#include "tuple_assist.h"
 
 template<typename T, T default_value, size_t dim = 2>
 struct Matrix 
-{   
-    using index_type = std::array<size_t, dim>;
-    using data_type  = std::map<index_type, T>;
+{
+    static_assert(dim >= 2, "Invalid matrix dimension");
 
-    struct IdxStorage 
-    {       
+    using data_type = std::list<typename tuple_of_n<size_t, T,  dim>::type>;   
 
-        IdxStorage(data_type& ext_data_, size_t index) : ext_data(ext_data_), cur_idx(0)
+    T  cur_def = default_value;
+    data_type data;
+
+
+    template<size_t i>
+    struct idexer{
+
+        T  cur_def = default_value;
+
+        using idex_type = typename tuple_of_n<size_t, size_t, i>::type;
+
+        idex_type   index;
+        data_type&  ext_data; 
+
+
+        idexer(idex_type val_, data_type& ext_data_):index(val_),ext_data(ext_data_) {}
+
+
+        auto operator[](size_t idx_val) 
         {
-            key[cur_idx++] = index;
+            static_assert (i < dim , "Invalid matrix index");
+
+            D_PF_LOG();           
+            return idexer<i+1>(std::tuple_cat(index, std::make_tuple(idx_val)), ext_data);
         }
 
-
-        void add_idx(size_t idx) 
-        {
-            D_PF_LOG();
-
-            if(cur_idx >= dim)
-                throw std::invalid_argument("Invalid matrix index");
-            key[cur_idx++] = idx;
-        }
-
-
-        IdxStorage & operator[](size_t idx)
-        {
-            D_PF_LOG();
-
-            add_idx(idx);
-            return (*this);
-        }
-
-
-        //T& operator=(const T value)
+         //T& operator=(const T value)
         T operator=(const T value)
         {   
             D_PF_LOG();
 
-            if(cur_idx != dim)
-                throw std::invalid_argument("Invalid matrix index");
+            static_assert (i == (dim -1), "Invalid matrix index");
 
-            if(value == cur_def){
-                ext_data.erase(key);
-                return cur_def; /// !!!
+            auto it = is_idx_exist();
+
+            if ( it == ext_data.end() ) {
+                if(value != cur_def){ //new data
+                    ext_data.push_back(std::tuple_cat(index, std::make_tuple(value)));                    
+                }    
             }
+            else{
+                if(value != cur_def){ //new data
+                    ext_data.erase(it);
+                    ext_data.push_back(std::tuple_cat(index, std::make_tuple(value)));                    
+                } 
+                else {
+                    ext_data.erase(it);    
+                }
 
-            ext_data[key] = value;
-            return ext_data[key];
+            }
+            return value;
         }
 
-
-        operator const T& ()
+        operator const T& () const
         {   
             D_PF_LOG();
-            if(cur_idx != dim)
-                throw std::invalid_argument("Invalid matrix index");
 
-            auto it = ext_data.find( key );
+            static_assert (i == (dim -1), "Invalid matrix index");
+
+            auto it = is_idx_exist();
+
             if ( it == ext_data.end())
                 return cur_def;
-            else
-                return it->second;           
+            else {
+                return std::get<i+1>(*it);        
+            }
         }
 
-        private:
-            data_type&  ext_data;            
-            index_type  key;
-            size_t      cur_idx;
+        auto is_idx_exist() const
+        {
+            auto it = std::find_if(ext_data.cbegin(), ext_data.cend(), [this](auto d){
+                                   return partial_tuple_cmp<dim>(this->index, d);});
 
-            T  cur_def = default_value;
-    };
+            return it;
+        }
+    }; 
+    
 
-
-    data_type data;
-
-    IdxStorage operator[](size_t idx) 
+     auto operator[](size_t idx_val) 
     {
-        return IdxStorage(data, idx);
+        D_PF_LOG();
+        return idexer<0>(std::make_tuple(idx_val), data);
+    }
+
+
+    auto operator[](size_t idx_val) const
+    {
+        D_PF_LOG();
+        return idexer<0>(std::make_tuple(idx_val), data);
     }
 
 
@@ -92,40 +109,37 @@ struct Matrix
     }
 
 
-    struct const_iterator : std::iterator<std::forward_iterator_tag, const T>
+    void sort()
     {
+        data.sort();
+    }
 
-        const_iterator(typename data_type::const_iterator it_) : it(it_){}
-            
-        const_iterator & operator++()
+    auto begin() const { return data.cbegin(); }
+    auto end()   const { return data.cend();   }
+
+    auto begin()  { return data.begin(); }
+    auto end()    { return data.end();   }
+
+
+    void print_non_empty (std::ostream& os = std::cout)
+    {
+        for(const auto & t: data)
         {
-            ++it;
-            return *this;
+            tuple_p<decltype(t), dim + 1>::print(os, t);
+            os << "\n";
         }
+    }
 
 
-        auto  operator*()
-        {
-            return std::make_tuple(it->first, it->second);
+    void print_square(size_t row_up, size_t col_left, size_t size, std::ostream& os = std::cout)
+    {
+        static_assert (dim == 2, "print_square() works only for 2D matrix ");
+
+        for(auto i = row_up; i <= size; ++i){
+            for(auto j = col_left; j <= size; ++j){
+                os << (*this)[i][j] << " ";
+            } 
+            os << "\n";   
         }
-            
-            
-        bool operator==(const_iterator  & other)  
-        {
-            return (it == other.it);
-        }
-            
-            
-        bool operator!=(const_iterator  & other)  
-        {
-            return !(*this == other);
-        } 
-
-        private:
-            typename data_type::const_iterator it;   
-   
-    };
-
-    const_iterator begin() const { return const_iterator(data.cbegin()); }
-    const_iterator end()   const { return const_iterator(data.cend());   }
+    }
 };

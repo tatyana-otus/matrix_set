@@ -7,7 +7,7 @@ int main(int, char**)
 {
     try
     {
-        run_main(std::cout);  
+        endless_sparse2Dmatrix(std::cout);  
     }
     catch(const std::exception &e)
     {
