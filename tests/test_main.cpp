@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(print_3D)
     for(auto i = 0; i < 5; i++)
         matrix_3D[i][i][i] = i;
 
-    matrix_3D.print_non_empty(oss);
+    matrix_3D.print_non_empty(oss); // output in order of addition
 
     BOOST_CHECK( oss.str() == out_data );
 }
@@ -155,13 +155,13 @@ BOOST_AUTO_TEST_CASE(matrix_size_def_val)
     BOOST_CHECK( matrix_3D.size() == 0 );
 }
 
+
 BOOST_AUTO_TEST_CASE(const_matrix)
 {
     const Matrix<int, -1, 2> matrix_2D; 
 
     auto a = matrix_2D[0][0];
     BOOST_CHECK(a == -1);
-
     BOOST_CHECK(matrix_2D[0][0] == -1);
 }
 

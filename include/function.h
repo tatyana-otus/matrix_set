@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include <algorithm>
 
 
 void endless_sparse2Dmatrix(std::ostream& os = std::cout)
@@ -17,6 +16,7 @@ void endless_sparse2Dmatrix(std::ostream& os = std::cout)
     matrix.print_square(1, 1, 8, os);
 
     matrix.sort();
+    // output in sorted order
     matrix.print_non_empty(os);
 
     os << matrix.size() << std::endl;
