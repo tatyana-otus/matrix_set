@@ -39,6 +39,18 @@ BOOST_AUTO_TEST_CASE(base_check)
     matrix_2D[100][100] = 314;
     BOOST_CHECK(matrix_2D[100][100] == 314);
     BOOST_CHECK(matrix_2D.size() == 1);
+
+    std::stringstream oss;
+    std::string out_data = "100100314\n";
+
+    for(auto c: matrix_2D){
+        int x;
+        int y;
+        int v;
+        std::tie(x, y, v) = c;
+        oss << x << y << v << std::endl;
+    }
+    BOOST_CHECK( oss.str() == out_data );
 }
 
 

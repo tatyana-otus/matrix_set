@@ -29,6 +29,14 @@ struct Matrix
             return { std::tuple_cat(index, std::make_tuple(idx_val)), ext_data };
         }
 
+        const Indexer<I + 1, U> operator[](size_t idx_val) const
+        {
+            D_PF_LOG();
+            static_assert (I < DIM, "Invalid matrix index");
+           
+            return { std::tuple_cat(index, std::make_tuple(idx_val)), ext_data };
+        }
+
         
         T operator=(const T value)
         {   
@@ -95,7 +103,7 @@ struct Matrix
     }
 
 
-    Indexer<0, const data_type> operator[](size_t idx_val) const
+    const Indexer<0, const data_type> operator[](size_t idx_val) const
     {
         D_PF_LOG();
         return { std::make_tuple(idx_val), data };
