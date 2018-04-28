@@ -1,6 +1,7 @@
 #include <iterator>
 #include <algorithm>
-#include <list>
+#include <set>
+#include <map>
 #include "debug_log.h"
 #include "tuple_assist.h"
 
@@ -10,7 +11,8 @@ struct Matrix
 {
     static_assert(DIM >= 2, "Invalid matrix dimension");
 
-    using data_type = std::list<typename tuple_add_type<typename tuple_n<size_t, DIM>::type, T>::type>;
+    using set_data_type  = std::set<typename tuple_add_type<typename tuple_n<size_t, DIM>::type, T>::type>;
+    using map_index_type = std::map<typename tuple_n<size_t, DIM>::type, typename set_data_type::iterator>;
 
 
     template<size_t I, class U>
@@ -18,7 +20,8 @@ struct Matrix
 
         using index_type = typename tuple_n<size_t, I + 1>::type;
 
-        Indexer(index_type val_, U& ext_data_):index(val_),ext_data(ext_data_) {}
+        Indexer(index_type val_, U& parent_):index(val_), parent(parent_) {}
+        
 
 
         Indexer<I + 1, U> operator[](size_t idx_val) 
@@ -26,7 +29,7 @@ struct Matrix
             D_PF_LOG();
             static_assert (I < DIM, "Invalid matrix index");
            
-            return { std::tuple_cat(index, std::make_tuple(idx_val)), ext_data };
+            return { std::tuple_cat(index, std::make_tuple(idx_val)), parent };
         }
 
         const Indexer<I + 1, U> operator[](size_t idx_val) const
@@ -34,7 +37,7 @@ struct Matrix
             D_PF_LOG();
             static_assert (I < DIM, "Invalid matrix index");
            
-            return { std::tuple_cat(index, std::make_tuple(idx_val)), ext_data };
+            return { std::tuple_cat(index, std::make_tuple(idx_val)), parent };
         }
 
         
@@ -44,20 +47,24 @@ struct Matrix
 
             static_assert (I == (DIM - 1), "Invalid matrix index");
 
-            auto it = is_idx_exist();
-
-            if ( it == ext_data.end() ) {
+            auto it = parent.data_index.find(index);
+            if( it == parent.data_index.end()) { 
                 if(value != cur_def){ 
-                    ext_data.push_back(std::tuple_cat(index, std::make_tuple(value)));
-                }    
+                    auto res = parent.data_set.insert(std::tuple_cat(index, std::make_tuple(value)));
+                    parent.data_index[index] = res.first;
+                } 
             }
             else{
                 if(value != cur_def){
-                    std::get<DIM>(*it) = value;
+                    parent.data_set.erase(it->second);
+                    auto res = parent.data_set.insert(std::tuple_cat(index, std::make_tuple(value)));
+                    parent.data_index[index] = res.first;
                 } 
                 else {
-                    ext_data.erase(it);
+                    parent.data_set.erase(it->second);
+                    parent.data_index.erase(it);
                 }
+                
             }
             return value;
         }
@@ -69,69 +76,51 @@ struct Matrix
 
             static_assert (I == (DIM - 1), "Invalid matrix index");
 
-            auto it = is_idx_exist();
-
-            if ( it == ext_data.end())
-                return cur_def;
-            else {
-                return std::get<DIM>(*it);
+            auto it = parent.data_index.find(index);
+            if( it == parent.data_index.end()) {
+                return cur_def; 
+            }
+            else{
+                return std::get<DIM>(*(it->second));
             }
         }
 
     private:
         T  cur_def = default_value;
-        index_type  index;
-        U&          ext_data; 
-
-        auto is_idx_exist() const
-        {
-            auto it = std::find_if( ext_data.begin(),
-                                    ext_data.end(),
-                                    [this](auto t)
-                                    {
-                                        return partial_tuple_cmp<DIM>(this->index, t);
-                                    });
-            return it;
-        }
+        index_type  index; 
+        U&          parent; 
     }; 
 
 
-    Indexer<0, data_type> operator[](size_t idx_val) 
+    Indexer<0, Matrix> operator[](size_t idx_val) 
     {
         D_PF_LOG();
-        return { std::make_tuple(idx_val), data };
+        return { std::make_tuple(idx_val), *this };
     }
 
 
-    const Indexer<0, const data_type> operator[](size_t idx_val) const
+    const Indexer<0, const Matrix> operator[](size_t idx_val) const
     {
         D_PF_LOG();
-        return { std::make_tuple(idx_val), data };
+        return { std::make_tuple(idx_val), *this };
     }
 
 
     size_t size() const
     {       
-        return data.size();;
+        return data_set.size();;
     }
 
+    auto begin() const { return data_set.cbegin(); }
+    auto end()   const { return data_set.cend();   }
 
-    void sort()
-    {
-        data.sort();
-    }
-
-
-    auto begin() const { return data.cbegin(); }
-    auto end()   const { return data.cend();   }
-
-    auto begin()  { return data.begin(); }
-    auto end()    { return data.end();   }
+    auto begin()  { return data_set.begin(); }
+    auto end()    { return data_set.end();   }
 
 
     void print_non_empty (std::ostream& os = std::cout)
     {
-        for(const auto & t: data)
+        for(const auto & t: data_set)
         {
             tuple_p<decltype(t), DIM + 1>::print(os, t);
             os << "\n";
@@ -152,5 +141,7 @@ struct Matrix
     }
 
 private:
-    data_type data;
+    set_data_type   data_set;
+    map_index_type  data_index;
+
 };
