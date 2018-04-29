@@ -49,13 +49,13 @@ struct Matrix
 
             auto it = parent.data_index.find(index);
             if( it == parent.data_index.end()) { 
-                if(value != cur_def){ 
+                if(value != default_value){ 
                     auto res = parent.data_set.insert(std::tuple_cat(index, std::make_tuple(value)));
                     parent.data_index[index] = res.first;
                 } 
             }
             else{
-                if(value != cur_def){
+                if(value != default_value){
                     parent.data_set.erase(it->second);
                     auto res = parent.data_set.insert(std::tuple_cat(index, std::make_tuple(value)));
                     parent.data_index[index] = res.first;
@@ -70,7 +70,7 @@ struct Matrix
         }
 
 
-        operator const T& () const
+        operator const T () const
         {   
             D_PF_LOG();
 
@@ -78,7 +78,7 @@ struct Matrix
 
             auto it = parent.data_index.find(index);
             if( it == parent.data_index.end()) {
-                return cur_def; 
+                return default_value; 
             }
             else{
                 return std::get<DIM>(*(it->second));
@@ -86,7 +86,6 @@ struct Matrix
         }
 
     private:
-        T  cur_def = default_value;
         index_type  index; 
         U&          parent; 
     }; 

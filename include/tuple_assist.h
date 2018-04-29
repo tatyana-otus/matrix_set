@@ -28,21 +28,6 @@ struct tuple_add_type
 
 
 /*
- *	Compares only N first elements of tuples t1 and t2
- */
-template<typename... Args1, typename... Args2, std::size_t... Is>
-bool partial_tuple_cmp_(const std::tuple<Args1...>& t1, const std::tuple<Args2...>& t2, std::index_sequence<Is...> ) {
- 
-  return std::tie(std::get<Is>(t1)...) == std::tie(std::get<Is>(t2)...);
-};
-
-template<size_t N, typename... Args1, typename... Args2> 
-bool partial_tuple_cmp(const std::tuple<Args1...>& t1, const std::tuple<Args2...>& t2) {
-  return partial_tuple_cmp_(t1, t2, std::make_index_sequence<N>());
-};
-
-
-/*
  *  Print std::tuple
  */
 template<typename T, std::size_t N>
